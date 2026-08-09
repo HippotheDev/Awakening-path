@@ -280,38 +280,10 @@
 
 <script>
 (function(){
-  // Register a same-file service worker (built as a Blob, so nothing extra
-  // needs to be hosted) that caches the app shell. This is what lets Chrome
-  // treat this as a real installable app (no browser badge on the home
-  // screen icon) and lets it reopen after a reload with no network.
-  if ('serviceWorker' in navigator) {
-    try {
-      const swSource = `
-        const CACHE = 'awakening-shell-v1';
-        self.addEventListener('install', (event) => {
-          event.waitUntil(
-            caches.open(CACHE).then((cache) => cache.add(new Request(self.registration.scope, {cache:'reload'})))
-          );
-          self.skipWaiting();
-        });
-        self.addEventListener('activate', (event) => {
-          event.waitUntil(self.clients.claim());
-        });
-        self.addEventListener('fetch', (event) => {
-          if (event.request.mode !== 'navigate') return;
-          event.respondWith(
-            fetch(event.request).then((res) => {
-              const copy = res.clone();
-              caches.open(CACHE).then((cache) => cache.put(event.request, copy));
-              return res;
-            }).catch(() => caches.match(event.request).then((cached) => cached || caches.match(self.registration.scope)))
-          );
-        });
-      `;
-      const swBlob = new Blob([swSource], {type: 'text/javascript'});
-      navigator.serviceWorker.register(URL.createObjectURL(swBlob));
-    } catch (e) { /* offline caching is a nice-to-have, safe to skip if unsupported */ }
-  }
+// Register service worker from separate file
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
   const GOALS = { steps:10000, pushups:100, squats:100, crunches:100 };
   const LABELS = { steps:'STEPS', pushups:'PUSH-UPS', squats:'SQUATS', crunches:'CRUNCHES' };
   const ICONS = { steps:'🥾', pushups:'👊', squats:'🦵', crunches:'🔥' };
